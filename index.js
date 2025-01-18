@@ -1,22 +1,30 @@
 import jsonfile from 'jsonfile';
 import moment from 'moment';
 import simpleGit from 'simple-git';
+import randomInt from 'random-int';
 
 const path = './data.json';
-const date = moment().format();
 
-const data = {
-    date: date,
+const makeCommits = async (n) => {
+    for (let i = 0; i < n; i++) {
+        const x = randomInt(0, 54); // weeks
+        const y = randomInt(0, 6);  // days
+
+        const date = moment()
+            .subtract(1, 'years')
+            .add(x, 'weeks')
+            .add(y, 'days')
+            .format();
+
+        const data = { date };
+
+        await jsonfile.writeFile(path, data);
+        await simpleGit().add('.')
+            .commit(date, { '--date': date })
+            .push();
+
+        console.log(`✅ Commit made on ${date}`);
+    }
 };
 
-jsonfile.writeFile(path, data, (err) => {
-    if (err) {
-        console.error('Error writing file:', err);
-    } else {
-        const git = simpleGit();
-        git.add('.')
-            .commit(date, { '--date': date })
-            .push()
-            .catch(err => console.error('Git push failed:', err));
-    }
-});
+makeCommits(10);
