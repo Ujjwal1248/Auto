@@ -4,54 +4,63 @@ import simpleGit from 'simple-git';
 import randomInt from 'random-int';
 
 const path = './data.json';
+const git = simpleGit();
 
-const makeCommits = async () => {
-    const n = randomInt(0, 10); // Random number of commits
-    const skipDays = [0,3,4,8];
+function generateDates() {
+    const start = moment("2025-03-01");
+    const end = moment("2025-07-31");
+    const days = [];
 
-    if (skipDays.includes(n)) {
-        console.log(`🛑 Skipping commits today. Random number was ${n}`);
-        return;
+    let current = start.clone();
+    while (current.isSameOrBefore(end)) {
+        days.push(current.clone());
+        current.add(1, 'day');
     }
 
-    console.log(`🔁 Will make ${n} commits today`);
+    // Pick ~95% of days
+    return days.filter(() => Math.random() < 0.95);
+}
 
-    const git = simpleGit();
+async function makeCommits() {
+    const dates = generateDates();
 
-    // Get today's date (YYYY-MM-DD)
-    const baseDate = moment().format('YYYY-MM-DD');
+    for (const day of dates) {
+        const commitCount = randomInt(5, 15); // Multiple commits per day
+        const timestamps = [];
 
-    // Generate random times for today
-    const timestamps = [];
-    for (let i = 0; i < n; i++) {
-        const hour = randomInt(0, 23);
-        const minute = randomInt(0, 59);
-        const second = randomInt(0, 59);
+        // Generate random commit times for the day
+        for (let i = 0; i < commitCount; i++) {
+            const hour = randomInt(0, 23);
+            const minute = randomInt(0, 59);
+            const second = randomInt(0, 59);
 
-        const timestamp = moment(`${baseDate}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`);
-        timestamps.push(timestamp);
+            timestamps.push(
+                moment(day.format("YYYY-MM-DD") + `T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`)
+            );
+        }
+
+        // Sort timestamps so commits happen in chronological order
+        timestamps.sort((a, b) => a - b);
+
+        // Make commits for the day
+        for (let i = 0; i < timestamps.length; i++) {
+            const date = timestamps[i].format('YYYY-MM-DDTHH:mm:ssZ');
+            const data = { commit: i + 1, date };
+
+            process.env.GIT_AUTHOR_DATE = date;
+            process.env.GIT_COMMITTER_DATE = date;
+
+            await jsonfile.writeFile(path, data);
+            await git.add('.')
+                .commit(`Auto commit ${i + 1} at ${date}`, { '--date': date });
+
+            console.log(`✅ Commit ${i + 1} made at ${date}`);
+        }
     }
 
-    // Sort timestamps to ensure commits happen in order
-    timestamps.sort((a, b) => a - b);
-
-    // Do the commits
-    for (let i = 0; i < timestamps.length; i++) {
-        const date = timestamps[i].format('YYYY-MM-DDTHH:mm:ssZ');
-        const data = { commit: i + 1, date };
-
-        process.env.GIT_AUTHOR_DATE = date;
-        process.env.GIT_COMMITTER_DATE = date;
-
-        await jsonfile.writeFile(path, data);
-        await git.add('.')
-            .commit(`Auto commit ${i + 1} at ${date}`, { '--date': date });
-
-        console.log(`✅ Commit ${i + 1} made at ${date}`);
-    }
-
+    // Push all commits once at the end
     await git.push();
-    console.log(`🚀 Pushed all ${n} commits`);
-};
+    console.log(`🚀 All commits pushed successfully`);
+}
 
 makeCommits();
