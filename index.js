@@ -1,30 +1,24 @@
 import jsonfile from 'jsonfile';
 import moment from 'moment';
 import simpleGit from 'simple-git';
-import randomInt from 'random-int';
 
 const path = './data.json';
 
 const makeCommits = async (n) => {
     for (let i = 0; i < n; i++) {
-        const x = randomInt(0, 54); // weeks
-        const y = randomInt(0, 6);  // days
-
-        const date = moment()
-            .subtract(1, 'years')
-            .add(x, 'weeks')
-            .add(y, 'days')
-            .format();
+        const date = moment().format('YYYY-MM-DDTHH:mm:ssZ'); // Today's date with time zone
 
         const data = { date };
+        process.env.GIT_AUTHOR_DATE = date;
+        process.env.GIT_COMMITTER_DATE = date;
 
         await jsonfile.writeFile(path, data);
         await simpleGit().add('.')
-            .commit(date, { '--date': date })
+            .commit(`Commit ${i + 1} on ${date}`, { '--date': date })
             .push();
 
-        console.log(`✅ Commit made on ${date}`);
+        console.log(`✅ Commit ${i + 1} made on ${date}`);
     }
 };
 
-makeCommits(14);
+makeCommits(5); // You can change the number here
