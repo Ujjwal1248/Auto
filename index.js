@@ -6,7 +6,7 @@ import randomInt from 'random-int';
 const path = './data.json';
 
 const makeCommits = async () => {
-    const n = randomInt(0, 10);
+    const n = randomInt(0,8);
     const skipDays = [0, 4, 7];
 
     if (skipDays.includes(n)) {
