@@ -14,7 +14,7 @@ jsonfile.writeFile(path, data, (err) => {
         console.error('Error writing file:', err);
     } else {
         const git = simpleGit();
-        git.add('.') // ✅ add all changes
+        git.add('.')
             .commit(date, { '--date': date })
             .push()
             .catch(err => console.error('Git push failed:', err));
