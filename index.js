@@ -6,7 +6,14 @@ import randomInt from 'random-int';
 const path = './data.json';
 
 const makeCommits = async () => {
-    const n = randomInt(0, 10); // 👈 Random number of commits
+    const n = randomInt(0, 10);
+    const skipDays = [0, 4, 7];
+
+    if (skipDays.includes(n)) {
+        console.log(`🛑 Skipping commits today. Random number was ${n}`);
+        return;
+    }
+
     const git = simpleGit();
 
     for (let i = 0; i < n; i++) {
@@ -18,17 +25,13 @@ const makeCommits = async () => {
 
         await jsonfile.writeFile(path, data);
         await git.add('.')
-            .commit(`Daily commit ${i + 1} on ${date}`, { '--date': date });
+            .commit(`Auto commit ${i + 1} on ${date}`, { '--date': date });
 
         console.log(`✅ Commit ${i + 1} made on ${date}`);
     }
 
-    if (n > 0) {
-        await git.push();
-        console.log(`🚀 Pushed ${n} commit(s)`);
-    } else {
-        console.log('🛌 No commits today (0 picked)');
-    }
+    await git.push();
+    console.log(`🚀 Pushed ${n} commit(s)`);
 };
 
 makeCommits();
