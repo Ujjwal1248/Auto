@@ -21,4 +21,4 @@ const makeCommits = async (n) => {
     }
 };
 
-makeCommits(5); // You can change the number here
+makeCommits(45); // You can change the number here
