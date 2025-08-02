@@ -7,7 +7,7 @@ const path = './data.json';
 
 const makeCommits = async () => {
     const n = randomInt(0, 10); // Random number of commits
-    const skipDays = [0, 4, 8];
+    const skipDays = [0,3,4,8];
 
     if (skipDays.includes(n)) {
         console.log(`🛑 Skipping commits today. Random number was ${n}`);
